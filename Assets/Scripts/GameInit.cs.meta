@@ -1,11 +1,14 @@
 fileFormatVersion: 2
 guid: 7a38d4f1c5fac6c49bcba5531d0c5adc
-timeCreated: 1519387432
+timeCreated: 1519469763
 licenseType: Free
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - sphere: {instanceID: 0}
+  - sphere1: {instanceID: 0}
+  - sphere2: {fileID: 1832543079929498, guid: 5b4471673c2da10429968ccdef03a19d, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

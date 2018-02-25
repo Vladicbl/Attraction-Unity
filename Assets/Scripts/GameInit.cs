@@ -4,14 +4,28 @@ using UnityEngine;
 
 public class GameInit : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
+    public GameObject sphere;
+    public List<GameObject> sphere1;
+
+    void Start () {
+        StartCoroutine(Lol());
+    }
+
+    IEnumerator Lol()
+    {
+        float x, y;
+        for (int i = 0; i < 5; i++)
+        {
+            x = Random.Range(-2.3f, 2.3f);
+            y = Random.Range(-4.3f, 4.3f);
+            sphere1.Add(Instantiate(sphere, new Vector3(x, y, 0), new Quaternion()));
+            sphere1[i].name = "Sphere"/* + i.ToString*/;
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    // Update is called once per frame
+    void Update () {
 		
 	}
 //	Random a = new Random ();
