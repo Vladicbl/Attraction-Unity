@@ -8,7 +8,7 @@ public class GameInit : MonoBehaviour {
     public List<GameObject> sphere1;
 
     void Start () {
-        StartCoroutine(Init());
+        StartCoroutine(InitGameplay());
     }
 
     void Update()
@@ -16,56 +16,51 @@ public class GameInit : MonoBehaviour {
 
     }
 
-    IEnumerator Init()
+    IEnumerator InitGameplay()
     {
         
-        for (int i = 0; i < 5; i++)
-        {
-            
-            sphere1.Add(Instantiate(sphere, new Vector3(x, y, 0), new Quaternion()));
+        for (int i = 0; i < 10; i++)
+        {            
+            sphere1.Add(Instantiate(sphere, SampleCandidate(), new Quaternion()));
             sphere1[i].name = "Sphere"/* + i.ToString*/;
             yield return new WaitForSeconds(1f);
-            actors.add(new SphereActor(sampleCandidate(), 40));
-            stage.addActor(actors.get(i));
         }
     }
 
 
-    private Vector3 sampleCandidate()
-    {
-        float x, y;
-        
-        byte numCandidates = 10;
-        Vector3 candidate = new Vector3();
-        Vector3 bestCandidate = new Vector3();
+    private Vector3 SampleCandidate()
+    { 
+        byte numCandidates = 20;
+
         float bestDistance = 0f;
         float distance;
-        x = Random.Range(-2.3f, 2.3f);
-        y = Random.Range(-4.3f, 4.3f);
+
+        Vector3 candidate = new Vector3();
+        Vector3 bestCandidate = new Vector3();
+
         for (byte i = 0; i < numCandidates; i++)
         {
-            candidate.Set(Random.Range(-2.3f, 2.3f), Random.Range(-2.3f, 2.3f),0);
-            distance = candidate.dst(findClosest(candidate));
-            candidate.
+            candidate.Set(Random.Range(-2.3f, 2.3f), Random.Range(-4.3f, 4.3f), 0);
+            distance = Vector3.Distance(candidate, FindClosest(candidate));
             if (distance > bestDistance)
             {
-                bestCandidate.set(candidate.x, candidate.y);
+                bestCandidate.Set(candidate.x, candidate.y, 0);
                 bestDistance = distance;
             }
         }
         return bestCandidate;
     }
 
-    private Vector3 findClosest(Vector3 sample)
+    private Vector3 FindClosest(Vector3 sample)
     {
         float bestDistance = 10f;
         Vector3 closest = new Vector3();
-        for (byte i = 0; i < actors.size(); i++)
+        for (byte i = 0; i < sphere1.Count; i++)
         {
-            if (sample.dst(actors.get(i).getSphereVector()) < bestDistance)
-            {
-                bestDistance = sample.dst(actors.get(i).getSphereVector());
-                closest = actors.get(i).getSphereVector();
+            if (Vector3.Distance(sample, sphere1[i].transform.position) < bestDistance)
+            {     
+                bestDistance = Vector3.Distance(sample, sphere1[i].transform.position);
+                closest = sphere1[i].transform.position;
             }
         }
         return closest;
