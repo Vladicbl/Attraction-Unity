@@ -1,63 +1,121 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Scripts;
 
 public class GameInit : MonoBehaviour {
 
     public GameObject spherePrefab;
     public GameObject linePrefab;
-    public List<GameObject> sphere;
+    public List<GameObject> spheres;
+    public List<GameObject> lines;
     public Sprite sprite;
-
+    
     private readonly float HORIZONTAL_BORDER_LEFT = -2.3f;
     private readonly float HORIZONTAL_BORDER_RIGHT = 2.3f;
     private readonly float VERTICAL_BORDER_LEFT = -4.3f;
     private readonly float VERTICAL_BORDER_RIGHT = 4.3f;
 
-    private bool[] incidenceMatrix = new bool[5]; //5 сфер
+    private static readonly byte maxNumOfPoints = 5;
+    private List<List<bool>> m;
+    private bool[,] incidenceMatrix = new bool[maxNumOfPoints, maxNumOfPoints]; //5 сфер\
+
+    private List<byte[]> LinesTied;
+
+
+
+    private Sphere a;
+
 
     void Start() {
         StartCoroutine(InitGameplay());
-        Debug.Log(sphere[0].active);
-
-        //GameObject.Find("sphere 1").transform.Translate(;
-        //sphere[1].active;
-        //Destroy(sphere[4], 1f);
-        //sphere[0].gameObject.Destr
-        //Debug.Log();
-
-        for (int i = 0; i < length; i++)
-        {
-            
-        }
+        
     }
 
     void Update()
+    {
+        //CreateLine();
+        if (Input.GetMouseButtonDown(0) && Input.mousePosition.x == 1)
+        {
+            Debug.Log("Pressed primary button.");
+        }
+        //Еще, как вариант, отдельный список, каждый элемент содержит: ссылку на сферу, список ссылок на связные сферы.
+        //new WaitForSeconds(10f);
+        //spheres.Remove(spheres[0].gameObject);
+    }
+
+    void MatrixFill()
     {
 
     }
 
     IEnumerator InitGameplay()
     {
-        for (int i = 0; i < 5; i++)
+        while (true)
         {
-            sphere.Add(Instantiate(spherePrefab, SampleCandidate(), new Quaternion()));
-            sphere[i].name = "Sphere " + i.ToString();
-            sphere[0].GetComponent<Animator>().enabled = false;
-            //sphere[i].GetComponent<Animation>().Stop();
-
-            
-
-            //sphere[i].GetComponent<Transform>().forward = 2;
-            //sphere[i].GetComponent<Buttons>().buttonsQuantity; как такое возможно?! ------------------------------
-            yield return new WaitForSeconds(1f);
+            CreateSphere();
+            yield return new WaitForSeconds(2f);
         }
+    }
 
-        for (int i = 0; i < 5; i++)
+    private void CreateSphere()
+    {
+        GameObject gameObject = Instantiate(spherePrefab, SampleCandidate(), new Quaternion());
+        gameObject.name = spheres.Count.ToString();
+        spheres.Add(gameObject);
+        Debug.Log(gameObject.GetComponent<Transform>().position);
+    }
+
+    private void CreateLine()
+    {
+        //GameObject gameObject = new GameObject();
+        LineRenderer lineRenderer = GetComponent<LineRenderer>();
+        //LineRenderer lineRenderer = gameObject.AddComponent<LineRenderer>();
+        lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
+        lineRenderer.startColor = Color.red;
+        lineRenderer.endColor = Color.blue;
+        lineRenderer.startWidth = 0.1f;
+        lineRenderer.endWidth = 0.1f;
+        lineRenderer.positionCount = 2;
+        if (spheres.Count == 2)
         {
-            Intersect(sphere[i].GetComponent<Transform>().position, sphere[i + 1].GetComponent<Transform>().position,
-                sphere[i + 2].GetComponent<Transform>().position, sphere[i + 3].GetComponent<Transform>().position);
+            lineRenderer.SetPosition(0, spheres[0].GetComponent<Transform>().position);
+            lineRenderer.SetPosition(1, spheres[1].GetComponent<Transform>().position);
+            //lines.Add(new GameObject());
+            GameObject gameObject = Instantiate(linePrefab, SampleCandidate(), new Quaternion());
+            gameObject.name = lines.Count.ToString();
+            lines.Add(gameObject);
+            Debug.Log(gameObject.GetComponent<Transform>().position);
         }
+    }
+
+    //struct pt http://e-maxx.ru/algo/segments_intersection_checking
+    //{
+    //    int x, y;
+    //};
+
+    private float Area(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint)
+    {
+        return (secondPoint.x - firstPoint.x) * (thirdPoint.y - firstPoint.y) - 
+            (secondPoint.y - firstPoint.y) * (thirdPoint.x - firstPoint.x);
+    }
+
+    private bool Intersect_1(float a, float b, float c, float d)
+    {
+        //a = a + b;
+        //b = a - b;
+        //a = a - b;
+        if (a > b) b = a - (a = b); //swap(a, b);
+        if (c > d) c = d - (d = c); //swap(c, d);
+        return Mathf.Max(a, c) <= Mathf.Min(b, d); //max(a, c) <= min(b, d);
+    }
+    
+    private bool Intersect(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint, Vector3 fourthPoint)
+    {
+        return Intersect_1(firstPoint.x, secondPoint.x, thirdPoint.x, fourthPoint.x)
+            && Intersect_1(firstPoint.y, secondPoint.y, thirdPoint.y, fourthPoint.y)
+            && Area(firstPoint, secondPoint, thirdPoint) * Area(firstPoint, secondPoint, fourthPoint) <= 0
+            && Area(thirdPoint, fourthPoint, firstPoint) * Area(thirdPoint, fourthPoint, secondPoint) <= 0;
     }
 
     private Vector3 SampleCandidate()
@@ -91,51 +149,17 @@ public class GameInit : MonoBehaviour {
 
         Vector3 closest = new Vector3();
 
-        for (byte i = 0; i < sphere.Count; i++)
+        for (byte i = 0; i < spheres.Count; i++)
         {
 
-            if (Vector3.Distance(sample, sphere[i].transform.position) < bestDistance)
+            if (Vector3.Distance(sample, spheres[i].transform.position) < bestDistance)
             {
-                bestDistance = Vector3.Distance(sample, sphere[i].transform.position);
-                closest = sphere[i].transform.position;
+                bestDistance = Vector3.Distance(sample, spheres[i].transform.position);
+                closest = spheres[i].transform.position;
             }
         }
 
         return closest;
-    }
-
-    private void CreateLine()
-    {
-
-    }
-
-    //struct pt http://e-maxx.ru/algo/segments_intersection_checking
-    //{
-    //    int x, y;
-    //};
-
-    private float Area(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint)
-    {
-        return (secondPoint.x - firstPoint.x) * (thirdPoint.y - firstPoint.y) - 
-            (secondPoint.y - firstPoint.y) * (thirdPoint.x - firstPoint.x);
-    }
-
-    private bool Intersect_1(float a, float b, float c, float d)
-    {
-        //a = a + b;
-        //b = a - b;
-        //a = a - b;
-        if (a > b) b = a - (a = b); //swap(a, b);
-        if (c > d) c = d - (d = c); //swap(c, d);
-        return Mathf.Max(a, c) <= Mathf.Min(b, d); //max(a, c) <= min(b, d);
-    }
-    
-    private bool Intersect(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint, Vector3 fourthPoint)
-    {
-        return Intersect_1(firstPoint.x, secondPoint.x, thirdPoint.x, fourthPoint.x)
-            && Intersect_1(firstPoint.y, secondPoint.y, thirdPoint.y, fourthPoint.y)
-            && Area(firstPoint, secondPoint, thirdPoint) * Area(firstPoint, secondPoint, fourthPoint) <= 0
-            && Area(thirdPoint, fourthPoint, firstPoint) * Area(thirdPoint, fourthPoint, secondPoint) <= 0;
     }
 
     //return true;
@@ -192,8 +216,8 @@ public class GameInit : MonoBehaviour {
     //void Update()
     //{
     //    transform.Translate(0, 0, distancePerSecond * Time.deltaTime); перемещение объекта. умножать на дельтаТайм, чтобы при любом фпс все было ути-пути.
-        //При применении расчётов передвижения внутри FixedUpdate, вам не нужно умножать ваши значения на Time.deltaTime.
-        //Потому что FixedUpdate вызывается в соответствии с надёжным таймером, независящим от частоты кадров.
+    //При применении расчётов передвижения внутри FixedUpdate, вам не нужно умножать ваши значения на Time.deltaTime.
+    //Потому что FixedUpdate вызывается в соответствии с надёжным таймером, независящим от частоты кадров.
     //    https://docs.unity3d.com/ru/current/Manual/TimeFrameManagement.html
     //}
 
