@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts
@@ -38,10 +37,10 @@ namespace Assets.Scripts
         {
             while (true) // массив сфер, чек связана ли , чек пересечение линии, движение
             {
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(0f);
                 if (IsTied)
                 {
-                    transform.position = Vector3.MoveTowards(transform.position, TiedWith.transform.position, Time.deltaTime * 10);
+                    transform.position = Vector3.MoveTowards(transform.position, TiedWith.transform.position, Time.deltaTime * 2);
                 }
                 
             }

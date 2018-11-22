@@ -107,6 +107,7 @@ public class GameInit : MonoBehaviour {
         
         for (int i = 1; i < spheres.Count; i++)
         {
+            //Intersect();
             if (!spheres[i].GetComponent<Sphere>().IsTied) //&& не пересекаются
             {
                 spheres[i].GetComponent<Sphere>().IsTied = true;
@@ -137,7 +138,7 @@ public class GameInit : MonoBehaviour {
         //a = a - b;
         if (a > b) b = a - (a = b); //swap(a, b);
         if (c > d) c = d - (d = c); //swap(c, d);
-        return Mathf.Max(a, c) <= Mathf.Min(b, d); //max(a, c) <= min(b, d);
+        return Mathf.Max(a, c) <= Mathf.Min(b, d);
     }
     
     private bool Intersect(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint, Vector3 fourthPoint)
@@ -192,7 +193,7 @@ public class GameInit : MonoBehaviour {
         return closest;
     }
 
-    
+
 
     //return true;
     //}
@@ -215,7 +216,7 @@ public class GameInit : MonoBehaviour {
     //    float distance = speed * Time.deltaTime * Input.GetAxis("Horizontal");
     //    transform.Translate(Vector3.right * distance);
     //}
-    
+
 
     //void Update()
     //{
@@ -227,4 +228,7 @@ public class GameInit : MonoBehaviour {
 
     //Основное правило заключается в том, чтобы не было ссылок на скрипты, компилирующиеся в фазе после.
     //Все, что компилируется в текущей или ранее выполненной фазе, должно быть полностью доступно.
+
+
+    // 50 советов https://freedevgame.ru/prog/50-sovetov-po-rabote-s-unity.html
 }

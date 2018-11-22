@@ -5,10 +5,12 @@ using UnityEngine;
 public class Line : MonoBehaviour {
 
     public LineRenderer lineRenderer { get; set; }
+    private PolygonCollider2D polygonCollider;
 
     private void Awake()
     {
         lineRenderer = GetComponent<LineRenderer>();
+        polygonCollider = GetComponent<PolygonCollider2D>();
     }
 
     void Start()
@@ -19,6 +21,9 @@ public class Line : MonoBehaviour {
         lineRenderer.startWidth = 0.1f;
         lineRenderer.endWidth = 0.1f;
         lineRenderer.positionCount = 2;
+
+
+        polygonCollider.points = new Vector2[2];
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
