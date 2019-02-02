@@ -5,12 +5,16 @@ using UnityEngine;
 public class Line : MonoBehaviour {
 
     public LineRenderer lineRenderer { get; set; }
+    public List<GameObject> tiedWith;
+
+
     private PolygonCollider2D polygonCollider;
 
     private void Awake()
     {
+        tiedWith = new List<GameObject>(2);
         lineRenderer = GetComponent<LineRenderer>();
-        polygonCollider = GetComponent<PolygonCollider2D>();
+        //polygonCollider = GetComponent<PolygonCollider2D>();
     }
 
     void Start()
@@ -21,20 +25,21 @@ public class Line : MonoBehaviour {
         lineRenderer.startWidth = 0.1f;
         lineRenderer.endWidth = 0.1f;
         lineRenderer.positionCount = 2;
+        //lineRenderer.SetPosition(0, new Vector3(0, 0, 0));
+        //lineRenderer.SetPosition(1, new Vector3(0, 0, 0));
 
 
-        polygonCollider.points = new Vector2[2];
+        //polygonCollider.points = new Vector2[2];
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.tag == "Cut")
+        if (collision.tag == "Cut" && gameObject != null)
         {
-            Debug.Log("hit");
-            if (gameObject != null)
-            {
-                Destroy(gameObject);
-            }
+            Debug.Log("hit line");
+            GameObject.Find("Initialization").GetComponent<GameInit>().lines.Remove(
+                GameObject.Find("Initialization").GetComponent<GameInit>().lines.Find(_ => _ == gameObject));
+            Destroy(gameObject);
         }
     }
 

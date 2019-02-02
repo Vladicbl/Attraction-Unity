@@ -16,7 +16,7 @@ namespace Assets.Scripts
         
         void Start()
         {
-            Debug.Log(this.gameObject.transform.position);
+            //Debug.Log(this.gameObject.transform.position);
             IsTied = false;
             StartCoroutine(Move());
             //gameObject = GameObject.FindGameObjectWithTag("Sphere");
@@ -38,17 +38,37 @@ namespace Assets.Scripts
             while (true) // массив сфер, чек связана ли , чек пересечение линии, движение
             {
                 yield return new WaitForSeconds(0f);
-                if (IsTied)
+                if (IsTied && gameObject != null)
                 {
                     transform.position = Vector3.MoveTowards(transform.position, TiedWith.transform.position, Time.deltaTime * 2);
+
+                    if (Vector3.Distance(transform.position, TiedWith.transform.position) < 1)
+                    {
+                        //GameObject.Find("Initialization").GetComponent<GameInit>().NumberOfSpheres -= 2;
+                        //-life
+                    }
+
                 }
+                
+                
                 
             }
         }
 
-        private void OnCollisionEnter2D(Collision2D collision)
+        private void OnTriggerEnter2D(Collider2D collision)
         {
-            
+            if (collision.tag == "Cut")
+            {
+                Debug.Log("hit sphere");
+                if (gameObject != null)
+                {
+                    GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Remove(
+                        GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Find(_ => _ == gameObject));
+                    GameObject.Find("Initialization").GetComponent<GameInit>().NumberOfSpheres -= 1;
+                    Destroy(gameObject);
+                }
+            }
         }
+
     }
 }

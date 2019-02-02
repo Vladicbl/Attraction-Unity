@@ -9,7 +9,7 @@ public class GameInit : MonoBehaviour {
     public GameObject linePrefab;
     public List<GameObject> spheres;
     public List<GameObject> lines;
-    
+
     private readonly float HORIZONTAL_BORDER_LEFT = -2.3f;
     private readonly float HORIZONTAL_BORDER_RIGHT = 2.3f;
     private readonly float VERTICAL_BORDER_LEFT = -4.3f;
@@ -19,70 +19,82 @@ public class GameInit : MonoBehaviour {
 
     private AudioSource audioSource;
 
-    private byte numberOfSpheres = 0;
+    public byte NumberOfSpheres { get; set; }
+
     private byte currentSphereIndex = 0;
+    private byte _numberOfUntiedSpheres = 0;
 
 
 
     void Start() {
+        NumberOfSpheres = 0;
         audioSource = GetComponent<AudioSource>();
+        audioSource.Play();
         StartCoroutine(InitGameplay());
-        StartCoroutine(CheckForTied());
+        StartCoroutine(CountUntiedSpheres());
+        StartCoroutine(TiedSpheres());
         // AsyncOperation asyncOperation = Application.LoadLevelAsync(); https://www.youtube.com/watch?v=BMWzxdrq8uc
     }
 
-    void Update()
+    IEnumerator CountUntiedSpheres()
     {
-        if (Input.GetMouseButtonDown(0) && Input.mousePosition.x == 1)
-        {
-            Debug.Log("Pressed primary button.");
-        }
-        //Еще, как вариант, отдельный список, каждый элемент содержит: ссылку на сферу, список ссылок на связные сферы.
-    }
-    
-    IEnumerator InitGameplay()
-    {
-        audioSource.Play();
         while (true)
         {
-            if (numberOfSpheres < maxNumOfSpheres)
+            byte numberOfUntiedSpheres = 0;
+            for (int i = 0; i < spheres.Count; i++)
+            {
+                if (!spheres[i].GetComponent<Sphere>().IsTied)
+                {
+                    numberOfUntiedSpheres++;
+                }
+            }
+            _numberOfUntiedSpheres = numberOfUntiedSpheres;
+            yield return new WaitForSeconds(.5f);
+        }
+    }
+
+    IEnumerator InitGameplay()
+    {
+        while (true)
+        {
+            if (NumberOfSpheres < maxNumOfSpheres)
             {
                 CreateSphere();
-                numberOfSpheres++;
-                string info = "sphere " + numberOfSpheres.ToString();
-                //Debug.Log(info);
+                NumberOfSpheres++;
+                string info = "sphere " + NumberOfSpheres.ToString();
             }
             yield return new WaitForSeconds(1f);
         }
     }
 
-    IEnumerator CheckForTied()
+    IEnumerator TiedSpheres()
     {
-        byte numberOfUntiedSpheres = 0;
-        int startSphere = -1;
         while (true)
         {
-            yield return new WaitForSeconds(2f);
-            for (int i = 0; i < spheres.Count; i++)
+            if (spheres.Count >= 2 && _numberOfUntiedSpheres >= 2)
             {
-                if (spheres[i].GetComponent<Sphere>().IsTied == false) // !!!!!!!!!!!
+                for (int i = 0; i < spheres.Count; i++)
                 {
-                    numberOfUntiedSpheres++;
-                    if (startSphere == -1)
+                    for (int j = i; j < spheres.Count; j++)
                     {
-                        Debug.Log("STS");
-                        startSphere = i;
+                        if (LineCanBeCreated(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
+                        {
+                            CreateLineNew(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
+                        }
                     }
                 }
             }
-            if (spheres.Count >= 2 && numberOfUntiedSpheres >= 2)
-            {
-                CreateLine(startSphere);
-            }
             yield return new WaitForSeconds(1f);
-            numberOfUntiedSpheres = 0;
-            startSphere = -1;
         }
+    }
+
+    private bool LineCanBeCreated(Sphere firstSphere, Sphere secondSphere)
+    {
+        if (firstSphere.IsTied == false && secondSphere.IsTied == false)
+        {
+            return true;
+        }
+        return false;
     }
 
     private void CreateSphere()
@@ -99,25 +111,72 @@ public class GameInit : MonoBehaviour {
 
     private void CreateLine(int startSphere) // ??? чек только тех сфер которые антайд
     {
-        GameObject gameObject = Instantiate(linePrefab, spheres[startSphere].GetComponent<Transform>().position, new Quaternion());
-        gameObject.name = "Line " + lines.Count;
-        lines.Add(gameObject);
-        lines[lines.Count-1].GetComponent<Line>().lineRenderer.SetPosition(0, spheres[startSphere].GetComponent<Transform>().position); // index of a sp!
-        spheres[startSphere].GetComponent<Sphere>().IsTied = true;
+        //Debug.Log(Intersect(new Vector3(1,1,0), new Vector3(6, 6, 0), new Vector3(1, 1, 0), new Vector3(6, 6, 0)));
         
         for (int i = 1; i < spheres.Count; i++)
         {
-            //Intersect();
-            if (!spheres[i].GetComponent<Sphere>().IsTied) //&& не пересекаются
+            //&& !CheckForIntersect(spheres[startSphere].transform, spheres[i].transform)
+            if (!spheres[i].GetComponent<Sphere>().IsTied )
             {
-                spheres[i].GetComponent<Sphere>().IsTied = true;
+
+                GameObject gameObject = Instantiate(linePrefab, spheres[startSphere].GetComponent<Transform>().position, new Quaternion());
+                gameObject.name = "Line " + lines.Count;
+                lines.Add(gameObject);
+                lines[lines.Count - 1].GetComponent<Line>().lineRenderer.SetPosition(0, spheres[startSphere].GetComponent<Transform>().position); // index of a sp!
+                lines[lines.Count - 1].GetComponent<Line>().tiedWith.Add(spheres[startSphere]);
+                spheres[startSphere].GetComponent<Sphere>().IsTied = true;
+                
+
                 spheres[i].GetComponent<Sphere>().TiedWith = spheres[startSphere];
                 spheres[startSphere].GetComponent<Sphere>().TiedWith = spheres[i];
-                lines[lines.Count-1].GetComponent<Line>().lineRenderer.SetPosition(1, spheres[i].GetComponent<Transform>().position);
-
+                lines[lines.Count - 1].GetComponent<Line>().lineRenderer.SetPosition(1, spheres[i].GetComponent<Transform>().position);
+                lines[lines.Count - 1].GetComponent<Line>().tiedWith.Add(spheres[i]);
+                spheres[i].GetComponent<Sphere>().IsTied = true;
                 break;
             }
         }
+    }
+
+    private void CreateLineNew(Sphere firstSphere, Sphere secondSphere)
+    {
+        GameObject gameObject = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());
+        gameObject.name = "Line " + lines.Count;
+
+        gameObject.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
+        firstSphere.GetComponent<Sphere>().IsTied = true;
+        firstSphere.GetComponent<Sphere>().TiedWith = secondSphere.gameObject;
+
+        gameObject.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
+        secondSphere.GetComponent<Sphere>().IsTied = true;
+        secondSphere.GetComponent<Sphere>().TiedWith = firstSphere.gameObject;
+
+        lines.Add(gameObject);
+        Debug.Log("CRLINE");
+    }
+
+
+
+
+
+
+
+    private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)
+    {
+        bool result = false;
+        if (lines.Count > 1)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                result = Intersect(firstSphere.position, secondSphere.position,
+                    lines[i].GetComponent<Line>().tiedWith[0].transform.position, lines[i].GetComponent<Line>().tiedWith[1].transform.position);
+                if (result == true)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
 
     //struct pt http://e-maxx.ru/algo/segments_intersection_checking

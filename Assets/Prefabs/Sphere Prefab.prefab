@@ -22,6 +22,7 @@ GameObject:
   - component: {fileID: 212026256672001066}
   - component: {fileID: 95960278782996814}
   - component: {fileID: 114919797551178344}
+  - component: {fileID: 58605293933671196}
   m_Layer: 0
   m_Name: Sphere Prefab
   m_TagString: Sphere
@@ -42,6 +43,21 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!58 &58605293933671196
+CircleCollider2D:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1400733770512934}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  serializedVersion: 2
+  m_Radius: 1.9
 --- !u!95 &95960278782996814
 Animator:
   serializedVersion: 3
