@@ -27,6 +27,7 @@ public class GameInit : MonoBehaviour {
 
 
     void Start() {
+        //Time.timeScale = .5f;
         NumberOfSpheres = 0;
         //audioSource = GetComponent<AudioSource>();
         //audioSource.Play();
@@ -94,10 +95,15 @@ public class GameInit : MonoBehaviour {
 
     private bool LineCanBeCreated(Sphere firstSphere, Sphere secondSphere)
     {
-        if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
+        if (firstSphere != null && secondSphere != null)
         {
-            return true;
+            Debug.Log("INTERSECT " + firstSphere.name + " and " + secondSphere.name + " is " + CheckForIntersect(firstSphere.transform, secondSphere.transform));
+            if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
+            {
+                return true;
+            }
         }
+        
         return false;
     }
 
@@ -138,12 +144,17 @@ public class GameInit : MonoBehaviour {
     private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)
     {
         bool result = false;
-        if (lines.Count > 1)
+        if (lines.Count >= 1)
         {
             for (int i = 0; i < lines.Count; i++)
             {
-                result = Intersect(firstSphere.position, secondSphere.position,
-                    lines[i].GetComponent<Line>().FirstSphere.transform.position, lines[i].GetComponent<Line>().SecondSphere.transform.position);
+                if (lines[i] != null)
+                {
+                    result = Intersect(firstSphere.position, secondSphere.position,
+                        lines[i].GetComponent<Line>().FirstSphere.transform.position,
+                        lines[i].GetComponent<Line>().SecondSphere.transform.position);
+                }
+                
                 if (result == true)
                 {
                     return true;
@@ -216,12 +227,12 @@ public class GameInit : MonoBehaviour {
 
         for (byte i = 0; i < spheres.Count; i++)
         {
-
-            if (Vector3.Distance(sample, spheres[i].transform.position) < bestDistance)
-            {
-                bestDistance = Vector3.Distance(sample, spheres[i].transform.position);
-                closest = spheres[i].transform.position;
-            }
+            if (spheres[i] != null)
+                if (Vector3.Distance(sample, spheres[i].transform.position) < bestDistance)
+                {
+                    bestDistance = Vector3.Distance(sample, spheres[i].transform.position);
+                    closest = spheres[i].transform.position;
+                }
         }
 
         return closest;
