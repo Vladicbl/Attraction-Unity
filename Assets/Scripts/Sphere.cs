@@ -16,12 +16,14 @@ namespace Assets.Scripts
         public GameObject Line { get; set; }
 
         private AudioSource audioSource;
+        private ParticleSystem particles;
 
         void Start()
         {
+            particles = GetComponent<ParticleSystem>();
             audioSource = GetComponent<AudioSource>();
-
             
+
             //Debug.Log(this.gameObject.transform.position);
             IsTied = false;
             StartCoroutine(Move());
@@ -52,7 +54,7 @@ namespace Assets.Scripts
                     if (Vector3.Distance(transform.position, TiedWith.transform.position) < 1)
                     {
                         //GameObject.Find("Initialization").GetComponent<GameInit>().NumberOfSpheres -= 2;
-                        
+
                         //if (gameObject != null)
                         //{
                         //    Destroy(gameObject);

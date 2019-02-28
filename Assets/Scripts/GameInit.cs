@@ -94,7 +94,7 @@ public class GameInit : MonoBehaviour {
 
     private bool LineCanBeCreated(Sphere firstSphere, Sphere secondSphere)
     {
-        if (firstSphere.IsTied == false && secondSphere.IsTied == false /*&& !CheckForIntersect(firstSphere.transform, secondSphere.transform)*/)
+        if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
         {
             return true;
         }

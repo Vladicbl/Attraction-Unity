@@ -1,25 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets.Scripts;
 
 public class Line : MonoBehaviour {
 
     public LineRenderer lineRenderer { get; set; }
     public GameObject FirstSphere { get; set; }
     public GameObject SecondSphere { get; set; }
-       
+
+    private EdgeCollider2D edgeCollider;
+
+
 
     private void Awake()
     {
         lineRenderer = GetComponent<LineRenderer>();
-        //polygonCollider = GetComponent<PolygonCollider2D>();
+        edgeCollider = GetComponent<EdgeCollider2D>();
     }
-
-    private void Update()
-    {
-        lineRenderer.SetPosition(0, FirstSphere.transform.position);
-        lineRenderer.SetPosition(1, SecondSphere.transform.position);
-    }
+    
 
     void Start()
     {
@@ -29,20 +28,33 @@ public class Line : MonoBehaviour {
         lineRenderer.startWidth = 0.1f;
         lineRenderer.endWidth = 0.1f;
         lineRenderer.positionCount = 2;
-        Debug.Log(gameObject.transform.GetChild(0).GetType());
-        //transform.rotation = Quaternion.identity;
-        
-        Transform Child = gameObject.transform.GetChild(0);
-        Child.rotation = Quaternion.identity;
-        //Child.rotation = transform.rotation;
-        //Child.GetComponent<BoxCollider2D>().offset = new Vector2(2,4);
-        //Child.GetComponent<BoxCollider2D>().size = new Vector2(2,4);
-        //Child.localPosition = new Vector3(0, 0, 0);
-        //Quaternion.
-        //Child.localRotation = new Quaternion(0, 0, 40, 0);
-            //gameObject.transform.rotation;
-        //gameObject.transform.GetChild(0).localPosition = new Vector3(0,0,0);
-        //gameObject.transform.
+
+        edgeCollider.isTrigger = true;
+
+        transform.position = Vector3.zero;
+        transform.localScale = Vector3.one;
+        edgeCollider.edgeRadius = .1f;
+    }
+
+    private void Update()
+    {
+        lineRenderer.SetPosition(0, FirstSphere.transform.position);
+        lineRenderer.SetPosition(1, SecondSphere.transform.position);
+
+        Vector2[] tempArray = edgeCollider.points;
+
+
+        tempArray[0].x = lineRenderer.GetPosition(0).x;
+        tempArray[0].y = lineRenderer.GetPosition(0).y;
+        tempArray[1].x = lineRenderer.GetPosition(1).x;
+        tempArray[1].y = lineRenderer.GetPosition(1).y;
+
+        //tempArray[0].x = FirstSphere.transform.position.x;
+        //tempArray[0].y = FirstSphere.transform.position.y;
+        //tempArray[1].x = SecondSphere.transform.position.x;
+        //tempArray[1].y = SecondSphere.transform.position.y;
+
+        edgeCollider.points = tempArray;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -52,7 +64,13 @@ public class Line : MonoBehaviour {
             Debug.Log("hit line");
             GameObject.Find("Initialization").GetComponent<GameInit>().lines.Remove(
                 GameObject.Find("Initialization").GetComponent<GameInit>().lines.Find(_ => _ == gameObject));
+
+            FirstSphere.GetComponent<Sphere>().IsTied = false;
+            SecondSphere.GetComponent<Sphere>().IsTied = false;
+
+
             Destroy(gameObject);
+            
         }
     }
 
