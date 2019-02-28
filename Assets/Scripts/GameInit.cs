@@ -28,12 +28,17 @@ public class GameInit : MonoBehaviour {
 
     void Start() {
         NumberOfSpheres = 0;
-        audioSource = GetComponent<AudioSource>();
-        audioSource.Play();
+        //audioSource = GetComponent<AudioSource>();
+        //audioSource.Play();
         StartCoroutine(InitGameplay());
         StartCoroutine(CountUntiedSpheres());
         StartCoroutine(TiedSpheres());
         // AsyncOperation asyncOperation = Application.LoadLevelAsync(); https://www.youtube.com/watch?v=BMWzxdrq8uc
+    }
+
+    private void Update()
+    {
+        Debug.Log(NumberOfSpheres);
     }
 
     IEnumerator CountUntiedSpheres()
@@ -61,9 +66,8 @@ public class GameInit : MonoBehaviour {
             {
                 CreateSphere();
                 NumberOfSpheres++;
-                string info = "sphere " + NumberOfSpheres.ToString();
             }
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(.7f);
         }
     }
 
@@ -79,7 +83,7 @@ public class GameInit : MonoBehaviour {
                     {
                         if (LineCanBeCreated(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
                         {
-                            CreateLineNew(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
+                            CreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
                         }
                     }
                 }
@@ -90,7 +94,7 @@ public class GameInit : MonoBehaviour {
 
     private bool LineCanBeCreated(Sphere firstSphere, Sphere secondSphere)
     {
-        if (firstSphere.IsTied == false && secondSphere.IsTied == false)
+        if (firstSphere.IsTied == false && secondSphere.IsTied == false /*&& !CheckForIntersect(firstSphere.transform, secondSphere.transform)*/)
         {
             return true;
         }
@@ -100,8 +104,7 @@ public class GameInit : MonoBehaviour {
     private void CreateSphere()
     {
         GameObject gameObject = Instantiate(spherePrefab, SampleCandidate(), new Quaternion());
-        gameObject.name = "Sphere" + currentSphereIndex.ToString();
-        gameObject.tag = "Sphere"; //  ??? prefab has this tag already
+        gameObject.name = "Sphere " + currentSphereIndex.ToString();
         currentSphereIndex++;
         spheres.Add(gameObject);
 
@@ -109,57 +112,29 @@ public class GameInit : MonoBehaviour {
             currentSphereIndex = 0;
     }
 
-    private void CreateLine(int startSphere) // ??? чек только тех сфер которые антайд
-    {
-        //Debug.Log(Intersect(new Vector3(1,1,0), new Vector3(6, 6, 0), new Vector3(1, 1, 0), new Vector3(6, 6, 0)));
-        
-        for (int i = 1; i < spheres.Count; i++)
-        {
-            //&& !CheckForIntersect(spheres[startSphere].transform, spheres[i].transform)
-            if (!spheres[i].GetComponent<Sphere>().IsTied )
-            {
-
-                GameObject gameObject = Instantiate(linePrefab, spheres[startSphere].GetComponent<Transform>().position, new Quaternion());
-                gameObject.name = "Line " + lines.Count;
-                lines.Add(gameObject);
-                lines[lines.Count - 1].GetComponent<Line>().lineRenderer.SetPosition(0, spheres[startSphere].GetComponent<Transform>().position); // index of a sp!
-                lines[lines.Count - 1].GetComponent<Line>().tiedWith.Add(spheres[startSphere]);
-                spheres[startSphere].GetComponent<Sphere>().IsTied = true;
-                
-
-                spheres[i].GetComponent<Sphere>().TiedWith = spheres[startSphere];
-                spheres[startSphere].GetComponent<Sphere>().TiedWith = spheres[i];
-                lines[lines.Count - 1].GetComponent<Line>().lineRenderer.SetPosition(1, spheres[i].GetComponent<Transform>().position);
-                lines[lines.Count - 1].GetComponent<Line>().tiedWith.Add(spheres[i]);
-                spheres[i].GetComponent<Sphere>().IsTied = true;
-                break;
-            }
-        }
-    }
-
-    private void CreateLineNew(Sphere firstSphere, Sphere secondSphere)
+    private void CreateLine(Sphere firstSphere, Sphere secondSphere)
     {
         GameObject gameObject = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());
         gameObject.name = "Line " + lines.Count;
-
+        
         gameObject.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
         firstSphere.GetComponent<Sphere>().IsTied = true;
         firstSphere.GetComponent<Sphere>().TiedWith = secondSphere.gameObject;
+        firstSphere.GetComponent<Sphere>().Line = gameObject;
+
+        gameObject.GetComponent<Line>().FirstSphere = firstSphere.gameObject;
 
         gameObject.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
         secondSphere.GetComponent<Sphere>().IsTied = true;
         secondSphere.GetComponent<Sphere>().TiedWith = firstSphere.gameObject;
+        secondSphere.GetComponent<Sphere>().Line = gameObject;
+
+        gameObject.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
 
         lines.Add(gameObject);
         Debug.Log("CRLINE");
     }
-
-
-
-
-
-
-
+    
     private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)
     {
         bool result = false;
@@ -168,7 +143,7 @@ public class GameInit : MonoBehaviour {
             for (int i = 0; i < lines.Count; i++)
             {
                 result = Intersect(firstSphere.position, secondSphere.position,
-                    lines[i].GetComponent<Line>().tiedWith[0].transform.position, lines[i].GetComponent<Line>().tiedWith[1].transform.position);
+                    lines[i].GetComponent<Line>().FirstSphere.transform.position, lines[i].GetComponent<Line>().SecondSphere.transform.position);
                 if (result == true)
                 {
                     return true;
@@ -253,9 +228,6 @@ public class GameInit : MonoBehaviour {
     }
 
 
-
-    //return true;
-    //}
     //[Header("Name")] разделение переменных
     //[Space]
     //[Header("Name")]
