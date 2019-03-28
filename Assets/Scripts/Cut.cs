@@ -9,7 +9,7 @@ public class Cut : MonoBehaviour {
     
     bool isCutting = false;
 
-    Vector3 prevPosition;
+    Vector2 prevPosition;
     Rigidbody2D rb;
     CircleCollider2D circleCollider;
     Camera cam;
@@ -28,7 +28,7 @@ public class Cut : MonoBehaviour {
         } else if (Input.GetMouseButtonUp(0))
         {
             StopCutting();
-        }
+        }        
 
         if (isCutting)
         {
@@ -38,10 +38,12 @@ public class Cut : MonoBehaviour {
 
     void UpdateCut()
     {
-        Vector3 newPosition = cam.ScreenToWorldPoint(Input.mousePosition);
-        newPosition.z = 1;
+        Vector2 newPosition = cam.ScreenToWorldPoint(Input.mousePosition);
+
         rb.position = newPosition;
         float velocity = (newPosition - prevPosition).magnitude * Time.deltaTime;
+
+        //Debug.Log("Velocity " + velocity);
 
         if (velocity > minCuttingVelocity)
         {
@@ -67,7 +69,7 @@ public class Cut : MonoBehaviour {
     {
         isCutting = false;
         currentCutTrail.transform.SetParent(null);
-        Destroy(currentCutTrail, 1f);
+        Destroy(currentCutTrail);
         circleCollider.enabled = false;
     }
 

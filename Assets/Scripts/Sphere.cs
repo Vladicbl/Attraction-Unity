@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scripts
 {
@@ -14,7 +15,7 @@ namespace Assets.Scripts
         public bool IsTied { get; set; }
         public GameObject TiedWith { get; set; }
         public GameObject Line { get; set; }
-
+        
         private AudioSource audioSource;
         private ParticleSystem particles;
 
@@ -80,6 +81,12 @@ namespace Assets.Scripts
             }
         }
 
+        private void GameOver()
+        {
+            StopAllCoroutines();
+            GameObject.Find("Initialization").GetComponent<GameInit>().GameOver();
+        }
+
         private void OnTriggerEnter2D(Collider2D collision)
         {
             if (collision.tag == "Cut")
@@ -87,13 +94,22 @@ namespace Assets.Scripts
                 Debug.Log("hit sphere");
                 if (gameObject != null)
                 {
-                    Destroy(gameObject);
+                    
+                    GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount -= .3f;
 
+                    if (GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount == 0)
+                    {
+                        Debug.Log("Game Over");
+                        GameOver();
+                        StopCoroutine("Move");
+                        GameObject.Find("Initialization").GetComponent<GameInit>().gameOverUI.SetActive(true);
+                    }
 
                     GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Remove(
                         GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Find(_ => _ == gameObject));
                     GameObject.Find("Initialization").GetComponent<GameInit>().NumberOfSpheres -= 1;
 
+                    Destroy(gameObject);
                     if (IsTied)
                     {
                         Destroy(Line);
@@ -114,6 +130,14 @@ namespace Assets.Scripts
                 {
                     //audioSource.Play();
 
+                    GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount -= .2f;
+
+                    if (GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount == 0)
+                    {
+                        Debug.Log("Game Over");
+
+                        GameObject.Find("Initialization").GetComponent<GameInit>().gameOverUI.SetActive(true);
+                    }
 
                     GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Remove(
                         GameObject.Find("Initialization").GetComponent<GameInit>().spheres.Find(_ => _ == gameObject));
@@ -121,7 +145,7 @@ namespace Assets.Scripts
 
                     GameObject.Find("Initialization").GetComponent<GameInit>().lines.Remove(
                             GameObject.Find("Initialization").GetComponent<GameInit>().lines.Find(_ => _ == gameObject));
-                    Invoke("stepOnObject.Play", 0.5f);
+                    
                     Destroy(gameObject);
                     Destroy(TiedWith);
                     Destroy(Line);

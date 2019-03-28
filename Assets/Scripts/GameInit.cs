@@ -2,14 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts;
+using UnityEngine.UI;
 
 public class GameInit : MonoBehaviour {
-
+    
     public GameObject spherePrefab;
     public GameObject linePrefab;
+    public GameObject gameOverUI;
+    public GameObject FinalScore;
     public List<GameObject> spheres;
     public List<GameObject> lines;
 
+    //todo заменить на динамические
     private readonly float HORIZONTAL_BORDER_LEFT = -2.3f;
     private readonly float HORIZONTAL_BORDER_RIGHT = 2.3f;
     private readonly float VERTICAL_BORDER_LEFT = -4.3f;
@@ -23,11 +27,13 @@ public class GameInit : MonoBehaviour {
 
     private byte currentSphereIndex = 0;
     private byte _numberOfUntiedSpheres = 0;
+    public int Score { get; set; }
 
 
 
     void Start() {
-        //Time.timeScale = .5f;
+        //Time.timeScale = .2f;
+        //TODO Добавить скрипт gameinit объектам которые его используют через инспектор, не использовать для этого Find().
         NumberOfSpheres = 0;
         //audioSource = GetComponent<AudioSource>();
         //audioSource.Play();
@@ -39,7 +45,15 @@ public class GameInit : MonoBehaviour {
 
     private void Update()
     {
-        Debug.Log(NumberOfSpheres);
+        GameObject.Find("Canvas").transform.Find("Score").GetComponent<TextMesh>().text = Score.ToString();
+        //Debug.Log(NumberOfSpheres);
+    }
+
+    public void GameOver()
+    {
+        FinalScore.GetComponent<Text>().text = Score.ToString();
+        StopAllCoroutines();
+        gameOverUI.SetActive(true);
     }
 
     IEnumerator CountUntiedSpheres()
@@ -49,7 +63,7 @@ public class GameInit : MonoBehaviour {
             byte numberOfUntiedSpheres = 0;
             for (int i = 0; i < spheres.Count; i++)
             {
-                if (!spheres[i].GetComponent<Sphere>().IsTied)
+                if (spheres[i] != null && !spheres[i].GetComponent<Sphere>().IsTied)
                 {
                     numberOfUntiedSpheres++;
                 }
@@ -82,10 +96,11 @@ public class GameInit : MonoBehaviour {
                 {
                     for (int j = i; j < spheres.Count; j++)
                     {
-                        if (LineCanBeCreated(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
-                        {
-                            CreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
-                        }
+                        if (spheres[i] != null && spheres[j] != null)
+                            if (LineCanBeCreated(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
+                            {
+                                CreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
+                            }
                     }
                 }
             }
@@ -97,7 +112,7 @@ public class GameInit : MonoBehaviour {
     {
         if (firstSphere != null && secondSphere != null)
         {
-            Debug.Log("INTERSECT " + firstSphere.name + " and " + secondSphere.name + " is " + CheckForIntersect(firstSphere.transform, secondSphere.transform));
+            //Debug.Log("INTERSECT " + firstSphere.name + " and " + secondSphere.name + " is " + CheckForIntersect(firstSphere.transform, secondSphere.transform));
             if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
             {
                 return true;
@@ -138,7 +153,6 @@ public class GameInit : MonoBehaviour {
         gameObject.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
 
         lines.Add(gameObject);
-        Debug.Log("CRLINE");
     }
     
     private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)
@@ -165,11 +179,6 @@ public class GameInit : MonoBehaviour {
         return false;
     }
 
-    //struct pt http://e-maxx.ru/algo/segments_intersection_checking
-    //{
-    //    int x, y;
-    //};
-
     private float Area(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint)
     {
         return (secondPoint.x - firstPoint.x) * (thirdPoint.y - firstPoint.y) - 
@@ -178,11 +187,8 @@ public class GameInit : MonoBehaviour {
 
     private bool Intersect_1(float a, float b, float c, float d)
     {
-        //a = a + b;
-        //b = a - b;
-        //a = a - b;
-        if (a > b) b = a - (a = b); //swap(a, b);
-        if (c > d) c = d - (d = c); //swap(c, d);
+        if (a > b) b = a - (a = b);
+        if (c > d) c = d - (d = c);
         return Mathf.Max(a, c) <= Mathf.Min(b, d);
     }
     
@@ -196,7 +202,7 @@ public class GameInit : MonoBehaviour {
 
     private Vector3 SampleCandidate()
     {
-        byte numCandidates = 20;
+        byte numCandidates = 10;
 
         float bestDistance = 0f;
         float distance;
@@ -237,40 +243,11 @@ public class GameInit : MonoBehaviour {
 
         return closest;
     }
-
-
-    //[Header("Name")] разделение переменных
-    //[Space]
-    //[Header("Name")]
-
-    // Организация взаимодействия между скриптами https://habrahabr.ru/post/212055/
+    
     // блюр который сейчас используется https://www.youtube.com/watch?v=YKTjVACAfqE
-
-
-
     // swipe https://github.com/mattdesl/lwjgl-basics/wiki/LibGDX-Finger-Swipe
     // https://vk.com/gdevs  ПАБЛИК ПО ГЕЙМДЕВУ.
-
     //https://unity3d.com/ru/how-to/highlights-from-end-to-end-2D-toolset
-
-    //void Update()
-    //{
-    //    float distance = speed * Time.deltaTime * Input.GetAxis("Horizontal");
-    //    transform.Translate(Vector3.right * distance);
-    //}
-
-
-    //void Update()
-    //{
-    //    transform.Translate(0, 0, distancePerSecond * Time.deltaTime); перемещение объекта. умножать на дельтаТайм, чтобы при любом фпс все было ути-пути.
-    //При применении расчётов передвижения внутри FixedUpdate, вам не нужно умножать ваши значения на Time.deltaTime.
-    //Потому что FixedUpdate вызывается в соответствии с надёжным таймером, независящим от частоты кадров.
-    //    https://docs.unity3d.com/ru/current/Manual/TimeFrameManagement.html
-    //}
-
-    //Основное правило заключается в том, чтобы не было ссылок на скрипты, компилирующиеся в фазе после.
-    //Все, что компилируется в текущей или ранее выполненной фазе, должно быть полностью доступно.
-
-
+    //https://docs.unity3d.com/ru/current/Manual/TimeFrameManagement.html
     // 50 советов https://freedevgame.ru/prog/50-sovetov-po-rabote-s-unity.html
 }

@@ -15,10 +15,10 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
+  - BG
+  - Bg_Blur
+  - Lines
+  - Spheres
   - 
   - 
   - 
@@ -42,4 +42,22 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: BG
+    uniqueID: 3872566629
+    locked: 0
+  - name: BG_Blur
+    uniqueID: 1553536949
+    locked: 0
+  - name: Lines
+    uniqueID: 478297971
+    locked: 0
+  - name: Spheres
+    uniqueID: 3467492359
+    locked: 0
+  - name: UI
+    uniqueID: 1529871111
+    locked: 0
+  - name: GameOverUI
+    uniqueID: 1038388235
     locked: 0
