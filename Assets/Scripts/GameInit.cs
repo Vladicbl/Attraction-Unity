@@ -32,7 +32,7 @@ public class GameInit : MonoBehaviour {
 
 
     void Start() {
-        //Time.timeScale = .2f;
+        Time.timeScale = .7f;
         //TODO Добавить скрипт gameinit объектам которые его используют через инспектор, не использовать для этого Find().
         NumberOfSpheres = 0;
         //audioSource = GetComponent<AudioSource>();
@@ -97,7 +97,7 @@ public class GameInit : MonoBehaviour {
                     for (int j = i; j < spheres.Count; j++)
                     {
                         if (spheres[i] != null && spheres[j] != null)
-                            if (LineCanBeCreated(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
+                            if (CanCreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
                             {
                                 CreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
                             }
@@ -108,7 +108,7 @@ public class GameInit : MonoBehaviour {
         }
     }
 
-    private bool LineCanBeCreated(Sphere firstSphere, Sphere secondSphere)
+    private bool CanCreateLine(Sphere firstSphere, Sphere secondSphere)
     {
         if (firstSphere != null && secondSphere != null)
         {
@@ -135,24 +135,24 @@ public class GameInit : MonoBehaviour {
 
     private void CreateLine(Sphere firstSphere, Sphere secondSphere)
     {
-        GameObject gameObject = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());
-        gameObject.name = "Line " + lines.Count;
-        
-        gameObject.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
-        firstSphere.GetComponent<Sphere>().IsTied = true;
-        firstSphere.GetComponent<Sphere>().TiedWith = secondSphere.gameObject;
-        firstSphere.GetComponent<Sphere>().Line = gameObject;
+        GameObject line = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());
+        line.name = "Line " + lines.Count;
 
-        gameObject.GetComponent<Line>().FirstSphere = firstSphere.gameObject;
+        line.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
+        firstSphere.IsTied = true;
+        firstSphere.TiedWith = secondSphere.gameObject;
+        firstSphere.Line = line;
 
-        gameObject.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
-        secondSphere.GetComponent<Sphere>().IsTied = true;
-        secondSphere.GetComponent<Sphere>().TiedWith = firstSphere.gameObject;
-        secondSphere.GetComponent<Sphere>().Line = gameObject;
+        line.GetComponent<Line>().FirstSphere = firstSphere.gameObject;
 
-        gameObject.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
+        line.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
+        secondSphere.IsTied = true;
+        secondSphere.TiedWith = firstSphere.gameObject;
+        secondSphere.Line = line;
 
-        lines.Add(gameObject);
+        line.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
+
+        lines.Add(line);
     }
     
     private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)

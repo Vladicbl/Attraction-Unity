@@ -9,8 +9,7 @@ public class Line : MonoBehaviour {
     public LineRenderer lineRenderer { get; set; }
     public GameObject FirstSphere { get; set; }
     public GameObject SecondSphere { get; set; }
-
-    public GameInit gameInit;
+    
 
     private EdgeCollider2D edgeCollider;
 
@@ -74,6 +73,7 @@ public class Line : MonoBehaviour {
 
             Debug.Log("hit line");
 
+            //SliceLine(collision.contacts[0].point);
 
             GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount += .1f;
 
@@ -112,75 +112,53 @@ public class Line : MonoBehaviour {
                     Destroy(SecondSphere);
                 }
             }
-
-            //collision.GetComponent<Collision2D>().contacts[0].point;
-            //SliceLine(collision.);
+            
+            
 
             Destroy(gameObject);
 
         }
     }
 
-    //private void OnTriggerEnter2D(Collider2D collision)
-    //{
-    //    Debug.Log("TRIGGERED " + collision.name);
-
-    //    if (collision.tag == "Cut" && gameObject != null)
-    //    {
-    //        GameInit gameInit = GameObject.Find("Initialization").GetComponent<GameInit>();
-
-    //        Debug.Log("hit line");
-            
-
-    //        GameObject.Find("Canvas").transform.GetChild(4).GetChild(0).GetComponent<Image>().fillAmount += .1f;
-
-    //        gameInit.lines.Remove(
-    //            gameInit.lines.Find(_ => _ == gameObject));
-            
-    //        gameInit.Score += 5;
-
-    //        FirstSphere.GetComponent<Sphere>().IsTied = false;
-    //        SecondSphere.GetComponent<Sphere>().IsTied = false;
-
-    //        byte disappearProbability = (byte) Random.Range(0, 9);
-    //        byte sphereProbability = (byte) Random.Range(0, 2);
-
-    //        if (disappearProbability <= 8) 
-    //        {
-                
-
-    //            if (sphereProbability == 0 && FirstSphere != null)
-    //            {
-    //                gameInit.spheres.Remove(
-    //                    gameInit.spheres.Find(_ => _ == FirstSphere.gameObject));
-    //                gameInit.NumberOfSpheres -= 1;
-    //                Destroy(FirstSphere);
-
-    //                gameInit.spheres.Remove(
-    //                    gameInit.spheres.Find(_ => _ == SecondSphere.gameObject));
-    //                gameInit.NumberOfSpheres -= 1;
-    //                Destroy(SecondSphere);
-    //            }
-    //            else if (SecondSphere != null)
-    //            {
-    //                gameInit.spheres.Remove(
-    //                    gameInit.spheres.Find(_ => _ == SecondSphere.gameObject));
-    //                gameInit.NumberOfSpheres -= 1;
-    //                Destroy(SecondSphere);
-    //            }
-    //        }
-
-    //        //collision.GetComponent<Collision2D>().contacts[0].point;
-    //        //SliceLine(collision.);
-
-    //        Destroy(gameObject);
-
-    //    }
-    //}
-
-    private void SliceLine()
+    private void SliceLine(Vector2 pointOfSlice)
     {
+        Vector3 pos = new Vector3(pointOfSlice.x, pointOfSlice.y);
+        LineRenderer a, b;
+        a = lineRenderer;
+        b = lineRenderer;
+        //transform.GetComponent<LineRenderer>().
+        a.SetPosition(0, FirstSphere.transform.position);
+        a.SetPosition(1, pos);
+
+        a.SetPosition(0, SecondSphere.transform.position);
+        a.SetPosition(1, pos);
+
+
+        float distance = 0;
+        float counter = 0;
+
+        float lineDrawSpeed = 0;
+
+        if (counter < distance)
+        {
+            counter += .1f / lineDrawSpeed;
+
+            float x = Mathf.Lerp(0, distance, counter);
+
+            //Vector3 pointA = origin.position;
+            //Vector3 pointB = destination.position;
+
+            //Vector3 pointAlongLine = x * Vector3.Normalize(pointB - pointA) + pointA;
+
+            //lineRenderer.SetPosition(1, pointAlongLine);
+
+        }
+            
 
     }
 
+    private void SliceParticleEffect()
+    {
+
+    }
 }
