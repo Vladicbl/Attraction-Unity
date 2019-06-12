@@ -8,12 +8,14 @@ public class GameInit : MonoBehaviour {
     
     public GameObject spherePrefab;
     public GameObject linePrefab;
+    public GameObject waterSplashPrefab;
+    public GameObject sphereDeathEffectPrefab;
     public GameObject gameOverUI;
     public GameObject FinalScore;
+
     public List<GameObject> spheres;
     public List<GameObject> lines;
 
-    //todo заменить на динамические
     private readonly float HORIZONTAL_BORDER_LEFT = -2.3f;
     private readonly float HORIZONTAL_BORDER_RIGHT = 2.3f;
     private readonly float VERTICAL_BORDER_LEFT = -4.3f;
@@ -29,24 +31,23 @@ public class GameInit : MonoBehaviour {
     private byte _numberOfUntiedSpheres = 0;
     public int Score { get; set; }
 
-
-
     void Start() {
-        Time.timeScale = .7f;
-        //TODO Добавить скрипт gameinit объектам которые его используют через инспектор, не использовать для этого Find().
+        Time.timeScale = .8f;
         NumberOfSpheres = 0;
-        //audioSource = GetComponent<AudioSource>();
-        //audioSource.Play();
         StartCoroutine(InitGameplay());
         StartCoroutine(CountUntiedSpheres());
         StartCoroutine(TiedSpheres());
-        // AsyncOperation asyncOperation = Application.LoadLevelAsync(); https://www.youtube.com/watch?v=BMWzxdrq8uc
     }
 
     private void Update()
     {
         GameObject.Find("Canvas").transform.Find("Score").GetComponent<TextMesh>().text = Score.ToString();
-        //Debug.Log(NumberOfSpheres);
+        
+        if (NumberOfSpheres > 200)
+        {
+            NumberOfSpheres = 0;
+        }
+        
     }
 
     public void GameOver()
@@ -112,7 +113,6 @@ public class GameInit : MonoBehaviour {
     {
         if (firstSphere != null && secondSphere != null)
         {
-            //Debug.Log("INTERSECT " + firstSphere.name + " and " + secondSphere.name + " is " + CheckForIntersect(firstSphere.transform, secondSphere.transform));
             if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
             {
                 return true;
@@ -135,22 +135,17 @@ public class GameInit : MonoBehaviour {
 
     private void CreateLine(Sphere firstSphere, Sphere secondSphere)
     {
-        GameObject line = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());
+        GameObject line = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());        
+
         line.name = "Line " + lines.Count;
 
         line.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
-        firstSphere.IsTied = true;
-        firstSphere.TiedWith = secondSphere.gameObject;
-        firstSphere.Line = line;
-
         line.GetComponent<Line>().FirstSphere = firstSphere.gameObject;
 
         line.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
-        secondSphere.IsTied = true;
-        secondSphere.TiedWith = firstSphere.gameObject;
-        secondSphere.Line = line;
-
         line.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
+
+        line.GetComponent<Line>().startInitAnimation(firstSphere, secondSphere);
 
         lines.Add(line);
     }
@@ -164,9 +159,12 @@ public class GameInit : MonoBehaviour {
             {
                 if (lines[i] != null)
                 {
-                    result = Intersect(firstSphere.position, secondSphere.position,
-                        lines[i].GetComponent<Line>().FirstSphere.transform.position,
-                        lines[i].GetComponent<Line>().SecondSphere.transform.position);
+                    if (firstSphere && secondSphere && lines[i].GetComponent<Line>().FirstSphere && lines[i].GetComponent<Line>().SecondSphere)
+                    {
+                        result = Intersect(firstSphere.position, secondSphere.position,
+                                                lines[i].GetComponent<Line>().FirstSphere.transform.position,
+                                                lines[i].GetComponent<Line>().SecondSphere.transform.position);
+                    }
                 }
                 
                 if (result == true)
@@ -243,11 +241,4 @@ public class GameInit : MonoBehaviour {
 
         return closest;
     }
-    
-    // блюр который сейчас используется https://www.youtube.com/watch?v=YKTjVACAfqE
-    // swipe https://github.com/mattdesl/lwjgl-basics/wiki/LibGDX-Finger-Swipe
-    // https://vk.com/gdevs  ПАБЛИК ПО ГЕЙМДЕВУ.
-    //https://unity3d.com/ru/how-to/highlights-from-end-to-end-2D-toolset
-    //https://docs.unity3d.com/ru/current/Manual/TimeFrameManagement.html
-    // 50 советов https://freedevgame.ru/prog/50-sovetov-po-rabote-s-unity.html
 }

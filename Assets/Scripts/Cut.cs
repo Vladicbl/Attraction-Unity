@@ -22,7 +22,7 @@ public class Cut : MonoBehaviour {
 	}
 	
 	void Update () {
-		if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))
         {
             StartCutting();
         } else if (Input.GetMouseButtonUp(0))
@@ -41,10 +41,8 @@ public class Cut : MonoBehaviour {
         Vector2 newPosition = cam.ScreenToWorldPoint(Input.mousePosition);
 
         rb.position = newPosition;
+        //transform.position = newPosition;
         float velocity = (newPosition - prevPosition).magnitude * Time.deltaTime;
-
-        //Debug.Log("Velocity " + velocity);
-
         if (velocity > minCuttingVelocity)
         {
             circleCollider.enabled = true;
@@ -60,7 +58,9 @@ public class Cut : MonoBehaviour {
     void StartCutting()
     {
         isCutting = true;
-        currentCutTrail = Instantiate(cutTrailPrefab, transform);
+        Transform t = transform;
+        t.position = cam.ScreenToWorldPoint(Input.mousePosition);
+        currentCutTrail = Instantiate(cutTrailPrefab, t);
         prevPosition = cam.ScreenToWorldPoint(Input.mousePosition);
         circleCollider.enabled = false;
     }
