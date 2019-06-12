@@ -2,97 +2,180 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Assets.Scripts;
+using UnityEngine.UI;
 
 public class GameInit : MonoBehaviour {
-
+    
     public GameObject spherePrefab;
     public GameObject linePrefab;
+    public GameObject waterSplashPrefab;
+    public GameObject sphereDeathEffectPrefab;
+    public GameObject gameOverUI;
+    public GameObject FinalScore;
+
     public List<GameObject> spheres;
     public List<GameObject> lines;
-    public Sprite sprite;
-    
+
     private readonly float HORIZONTAL_BORDER_LEFT = -2.3f;
     private readonly float HORIZONTAL_BORDER_RIGHT = 2.3f;
     private readonly float VERTICAL_BORDER_LEFT = -4.3f;
     private readonly float VERTICAL_BORDER_RIGHT = 4.3f;
 
-    private static readonly byte maxNumOfPoints = 5;
-    private List<List<bool>> m;
-    private bool[,] incidenceMatrix = new bool[maxNumOfPoints, maxNumOfPoints]; //5 сфер\
+    private readonly byte maxNumOfSpheres = 7;
 
-    private List<byte[]> LinesTied;
+    private AudioSource audioSource;
 
+    public byte NumberOfSpheres { get; set; }
 
-
-    private Sphere a;
-
+    private byte currentSphereIndex = 0;
+    private byte _numberOfUntiedSpheres = 0;
+    public int Score { get; set; }
 
     void Start() {
+        Time.timeScale = .8f;
+        NumberOfSpheres = 0;
         StartCoroutine(InitGameplay());
+        StartCoroutine(CountUntiedSpheres());
+        StartCoroutine(TiedSpheres());
+    }
+
+    private void Update()
+    {
+        GameObject.Find("Canvas").transform.Find("Score").GetComponent<TextMesh>().text = Score.ToString();
+        
+        if (NumberOfSpheres > 200)
+        {
+            NumberOfSpheres = 0;
+        }
         
     }
 
-    void Update()
+    public void GameOver()
     {
-        //CreateLine();
-        if (Input.GetMouseButtonDown(0) && Input.mousePosition.x == 1)
-        {
-            Debug.Log("Pressed primary button.");
-        }
-        //Еще, как вариант, отдельный список, каждый элемент содержит: ссылку на сферу, список ссылок на связные сферы.
-        //new WaitForSeconds(10f);
-        //spheres.Remove(spheres[0].gameObject);
+        FinalScore.GetComponent<Text>().text = Score.ToString();
+        StopAllCoroutines();
+        gameOverUI.SetActive(true);
     }
 
-    void MatrixFill()
+    IEnumerator CountUntiedSpheres()
     {
-
+        while (true)
+        {
+            byte numberOfUntiedSpheres = 0;
+            for (int i = 0; i < spheres.Count; i++)
+            {
+                if (spheres[i] != null && !spheres[i].GetComponent<Sphere>().IsTied)
+                {
+                    numberOfUntiedSpheres++;
+                }
+            }
+            _numberOfUntiedSpheres = numberOfUntiedSpheres;
+            yield return new WaitForSeconds(.5f);
+        }
     }
 
     IEnumerator InitGameplay()
     {
         while (true)
         {
-            CreateSphere();
-            yield return new WaitForSeconds(2f);
+            if (NumberOfSpheres < maxNumOfSpheres)
+            {
+                CreateSphere();
+                NumberOfSpheres++;
+            }
+            yield return new WaitForSeconds(.7f);
         }
+    }
+
+    IEnumerator TiedSpheres()
+    {
+        while (true)
+        {
+            if (spheres.Count >= 2 && _numberOfUntiedSpheres >= 2)
+            {
+                for (int i = 0; i < spheres.Count; i++)
+                {
+                    for (int j = i; j < spheres.Count; j++)
+                    {
+                        if (spheres[i] != null && spheres[j] != null)
+                            if (CanCreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>()) && spheres[i] != spheres[j])
+                            {
+                                CreateLine(spheres[i].GetComponent<Sphere>(), spheres[j].GetComponent<Sphere>());
+                            }
+                    }
+                }
+            }
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
+    private bool CanCreateLine(Sphere firstSphere, Sphere secondSphere)
+    {
+        if (firstSphere != null && secondSphere != null)
+        {
+            if (firstSphere.IsTied == false && secondSphere.IsTied == false && !CheckForIntersect(firstSphere.transform, secondSphere.transform))
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private void CreateSphere()
     {
         GameObject gameObject = Instantiate(spherePrefab, SampleCandidate(), new Quaternion());
-        gameObject.name = spheres.Count.ToString();
+        gameObject.name = "Sphere " + currentSphereIndex.ToString();
+        currentSphereIndex++;
         spheres.Add(gameObject);
-        Debug.Log(gameObject.GetComponent<Transform>().position);
+
+        if (currentSphereIndex == 9)
+            currentSphereIndex = 0;
     }
 
-    private void CreateLine()
+    private void CreateLine(Sphere firstSphere, Sphere secondSphere)
     {
-        //GameObject gameObject = new GameObject();
-        LineRenderer lineRenderer = GetComponent<LineRenderer>();
-        //LineRenderer lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.material = new Material(Shader.Find("Particles/Additive"));
-        lineRenderer.startColor = Color.red;
-        lineRenderer.endColor = Color.blue;
-        lineRenderer.startWidth = 0.1f;
-        lineRenderer.endWidth = 0.1f;
-        lineRenderer.positionCount = 2;
-        if (spheres.Count == 2)
-        {
-            lineRenderer.SetPosition(0, spheres[0].GetComponent<Transform>().position);
-            lineRenderer.SetPosition(1, spheres[1].GetComponent<Transform>().position);
-            //lines.Add(new GameObject());
-            GameObject gameObject = Instantiate(linePrefab, SampleCandidate(), new Quaternion());
-            gameObject.name = lines.Count.ToString();
-            lines.Add(gameObject);
-            Debug.Log(gameObject.GetComponent<Transform>().position);
-        }
-    }
+        GameObject line = Instantiate(linePrefab, firstSphere.GetComponent<Transform>().position, new Quaternion());        
 
-    //struct pt http://e-maxx.ru/algo/segments_intersection_checking
-    //{
-    //    int x, y;
-    //};
+        line.name = "Line " + lines.Count;
+
+        line.GetComponent<Line>().lineRenderer.SetPosition(0, firstSphere.GetComponent<Transform>().position);
+        line.GetComponent<Line>().FirstSphere = firstSphere.gameObject;
+
+        line.GetComponent<Line>().lineRenderer.SetPosition(1, secondSphere.GetComponent<Transform>().position);
+        line.GetComponent<Line>().SecondSphere = secondSphere.gameObject;
+
+        line.GetComponent<Line>().startInitAnimation(firstSphere, secondSphere);
+
+        lines.Add(line);
+    }
+    
+    private bool CheckForIntersect(Transform firstSphere, Transform secondSphere)
+    {
+        bool result = false;
+        if (lines.Count >= 1)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                if (lines[i] != null)
+                {
+                    if (firstSphere && secondSphere && lines[i].GetComponent<Line>().FirstSphere && lines[i].GetComponent<Line>().SecondSphere)
+                    {
+                        result = Intersect(firstSphere.position, secondSphere.position,
+                                                lines[i].GetComponent<Line>().FirstSphere.transform.position,
+                                                lines[i].GetComponent<Line>().SecondSphere.transform.position);
+                    }
+                }
+                
+                if (result == true)
+                {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
+    }
 
     private float Area(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint)
     {
@@ -102,12 +185,9 @@ public class GameInit : MonoBehaviour {
 
     private bool Intersect_1(float a, float b, float c, float d)
     {
-        //a = a + b;
-        //b = a - b;
-        //a = a - b;
-        if (a > b) b = a - (a = b); //swap(a, b);
-        if (c > d) c = d - (d = c); //swap(c, d);
-        return Mathf.Max(a, c) <= Mathf.Min(b, d); //max(a, c) <= min(b, d);
+        if (a > b) b = a - (a = b);
+        if (c > d) c = d - (d = c);
+        return Mathf.Max(a, c) <= Mathf.Min(b, d);
     }
     
     private bool Intersect(Vector3 firstPoint, Vector3 secondPoint, Vector3 thirdPoint, Vector3 fourthPoint)
@@ -120,7 +200,7 @@ public class GameInit : MonoBehaviour {
 
     private Vector3 SampleCandidate()
     {
-        byte numCandidates = 20;
+        byte numCandidates = 10;
 
         float bestDistance = 0f;
         float distance;
@@ -151,76 +231,14 @@ public class GameInit : MonoBehaviour {
 
         for (byte i = 0; i < spheres.Count; i++)
         {
-
-            if (Vector3.Distance(sample, spheres[i].transform.position) < bestDistance)
-            {
-                bestDistance = Vector3.Distance(sample, spheres[i].transform.position);
-                closest = spheres[i].transform.position;
-            }
+            if (spheres[i] != null)
+                if (Vector3.Distance(sample, spheres[i].transform.position) < bestDistance)
+                {
+                    bestDistance = Vector3.Distance(sample, spheres[i].transform.position);
+                    closest = spheres[i].transform.position;
+                }
         }
 
         return closest;
     }
-
-    //return true;
-    //}
-    //[Header("Name")] разделение переменных
-    //[Space]
-    //[Header("Name")]
-
-    // Организация взаимодействия между скриптами https://habrahabr.ru/post/212055/
-    // блюр который сейчас используется https://www.youtube.com/watch?v=YKTjVACAfqE
-
-
-
-    // swipe https://github.com/mattdesl/lwjgl-basics/wiki/LibGDX-Finger-Swipe
-    // https://vk.com/gdevs  ПАБЛИК ПО ГЕЙМДЕВУ.
-    //public GameObject pr;
-    //public Texture texture;
-    //pr.GetComponent<SpriteRenderer>().sprite = Sprite.Create((Texture2D)texture,new Rect(448,448,32,32), new Vector2(0,0),100f);
-
-    //Button but = test.GetComponent<Button>();
-    //but.OnClick.AddListener("вашМетод");
-
-    //https://unity3d.com/ru/how-to/highlights-from-end-to-end-2D-toolset
-    //Заметка для опытных программистов: вы можете быть удивлены, что инициализация объекта выполняется не в функции-конструкторе. Это потому, что создание объектов обрабатывается 
-    //редактором и происходит не в начале игрового процесса, как вы могли бы ожидать. Если вы попытаетесь определить конструктор для скриптового компонента, он будет мешать 
-    //нормальной работе Unity и может вызвать серьезные проблемы с проектом.
-
-    //public class Enemy : MonoBehaviour
-    //{
-    //    public GameObject player;
-
-    //    void Start()
-    //    {
-    //        // Start the enemy ten units behind the player character.
-    //        transform.position = player.transform.position - Vector3.forward * 10f;
-    //    }
-    //}
-
-    //Кроме того, если объявить переменную с доступом public 
-    //и заданным типом компонента в вашем скрипте, вы сможете перетащить любой объект, который содержит
-    //присоединенный компонент такого типа.Это позволит обращаться к компоненту напрямую, а не через игровой объект.
-    //public Transform playerTransform;
-
-    //void Update()
-    //{
-    //    float distance = speed * Time.deltaTime * Input.GetAxis("Horizontal");
-    //    transform.Translate(Vector3.right * distance);
-    //}
-
-
-
-    //public float distancePerSecond;
-
-    //void Update()
-    //{
-    //    transform.Translate(0, 0, distancePerSecond * Time.deltaTime); перемещение объекта. умножать на дельтаТайм, чтобы при любом фпс все было ути-пути.
-    //При применении расчётов передвижения внутри FixedUpdate, вам не нужно умножать ваши значения на Time.deltaTime.
-    //Потому что FixedUpdate вызывается в соответствии с надёжным таймером, независящим от частоты кадров.
-    //    https://docs.unity3d.com/ru/current/Manual/TimeFrameManagement.html
-    //}
-
-    //Основное правило заключается в том, чтобы не было ссылок на скрипты, компилирующиеся в фазе после.
-    //Все, что компилируется в текущей или ранее выполненной фазе, должно быть полностью доступно.
 }
